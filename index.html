@@ -1,0 +1,779 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" id="meta-theme" content="#0a0f1e">
+<link rel="manifest" href="manifest.json">
+<meta name="application-name" content="PunchTime Pro">
+<meta name="apple-mobile-web-app-title" content="PunchTime Pro">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#0a0f1e">
+<link rel="apple-touch-icon" href="icon-192.png">
+<title>PunchTime Pro</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@600&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+:root{
+  --acc:#00e5b4;--acc2:#00b890;--acc-rgb:0,229,180;
+  --dark:#0a0f1e;--dark2:#111827;--dark3:#1a2235;--dark4:#232d42;
+  --card:#161d2e;--card2:#1e2840;
+  --text:#f0f4ff;--text2:#8892a4;--text3:#4a5568;
+  --border:rgba(255,255,255,.07);--border2:rgba(255,255,255,.12);
+  --red:#ff4757;--amber:#ffa502;--green:#2ed573;
+  --radius:18px;--radius-sm:12px;--radius-xs:8px;
+}
+html,body{height:100%;background:#060b15;font-family:'Inter',system-ui,sans-serif;color:var(--text);overflow:hidden;-webkit-font-smoothing:antialiased}
+#root{height:100vh;display:flex;align-items:center;justify-content:center;background:#060b15}
+#app{height:100vh;width:100%;max-width:430px;display:flex;flex-direction:column;background:var(--dark);position:relative;overflow:hidden}
+.screen{display:none;flex:1;overflow-y:auto;padding-bottom:76px}
+.screen.active{display:block}
+::-webkit-scrollbar{width:0}
+
+/* HEADER */
+.app-header{display:flex;align-items:center;justify-content:space-between;padding:14px 20px 12px;flex-shrink:0;border-bottom:1px solid var(--border);background:var(--dark)}
+.hdr-logo{font-size:20px;font-weight:900;letter-spacing:-1px;color:var(--text)}
+.hdr-logo span{color:var(--acc)}
+.hdr-right{display:flex;align-items:center;gap:10px}
+.hdr-avatar{width:36px;height:36px;border-radius:50%;border:2px solid var(--acc);overflow:hidden;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px;color:var(--dark);background:var(--acc);cursor:pointer;flex-shrink:0}
+.hdr-avatar img{width:100%;height:100%;object-fit:cover;border-radius:50%}
+
+/* NAV */
+.bottom-nav{background:var(--card);display:flex;border-top:1px solid var(--border);flex-shrink:0;position:relative}
+.nav-btn{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:10px 4px 8px;gap:3px;border:none;background:transparent;color:var(--text3);font-size:9px;font-weight:700;cursor:pointer;transition:color .2s;letter-spacing:.05em;text-transform:uppercase}
+.nav-btn.active{color:var(--acc)}
+.nav-btn svg{width:20px;height:20px;stroke-width:1.8}
+.nav-bar{position:absolute;top:0;height:2px;background:var(--acc);border-radius:0 0 2px 2px;width:25%;transition:left .3s cubic-bezier(.4,0,.2,1)}
+
+/* CARDS */
+.card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius-sm);padding:16px;margin:0 16px 12px}
+.card-title{font-size:10px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.1em;margin-bottom:12px}
+
+/* HOME */
+.home-top{padding:16px 16px 0}
+.greeting-row{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:14px}
+.greeting-hi{font-size:12px;color:var(--text2);font-weight:500}
+.greeting-name{font-size:22px;font-weight:800;letter-spacing:-.5px;margin-top:1px}
+.status-badge{font-size:11px;font-weight:700;padding:4px 10px;border-radius:20px;background:rgba(255,255,255,.05);color:var(--text3)}
+
+/* CLOCK CARD */
+.clock-card{background:var(--card);border:1px solid var(--border2);border-radius:var(--radius);padding:18px 18px 14px;margin-bottom:12px;position:relative;overflow:hidden}
+.clock-accent-line{position:absolute;top:0;left:0;right:0;height:2px;background:var(--acc);opacity:.6}
+.clock-label-row{display:flex;align-items:center;gap:6px;margin-bottom:10px}
+.live-dot{width:7px;height:7px;border-radius:50%;background:var(--acc);flex-shrink:0}
+.live-dot.pulsing{animation:dp 1.4s ease-in-out infinite}
+@keyframes dp{0%,100%{box-shadow:0 0 0 0 rgba(var(--acc-rgb),.7)}60%{box-shadow:0 0 0 8px rgba(var(--acc-rgb),0)}}
+.clock-lbl-txt{font-size:11px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.08em}
+.big-clock{font-family:'JetBrains Mono',monospace;font-size:44px;font-weight:600;letter-spacing:-1px;line-height:1;color:var(--text);transition:color .3s}
+.big-clock.live{color:var(--acc)}
+.clock-sub{display:flex;justify-content:space-between;margin-top:6px;font-size:12px;color:var(--text2)}
+.progress-wrap{margin-top:12px}
+.progress-track{height:5px;background:var(--dark4);border-radius:3px;overflow:hidden}
+.progress-fill{height:100%;border-radius:3px;background:var(--acc);transition:width .6s ease}
+.progress-labels{display:flex;justify-content:space-between;margin-top:4px;font-size:10px;color:var(--text2);font-weight:500}
+
+/* QUICK STATS */
+.qs-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:0 16px 14px}
+.qs-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius-xs);padding:11px 8px;text-align:center}
+.qs-val{font-size:17px;font-weight:800;color:var(--acc);letter-spacing:-.3px}
+.qs-lbl{font-size:9px;color:var(--text2);margin-top:2px;font-weight:600;text-transform:uppercase;letter-spacing:.05em}
+
+/* PUNCH BUTTON */
+.punch-zone{display:flex;flex-direction:column;align-items:center;padding:4px 0 18px}
+.punch-outer{width:166px;height:166px;border-radius:50%;display:flex;align-items:center;justify-content:center;border:2px solid var(--border2);position:relative}
+.punch-outer.spinning{border-color:rgba(var(--acc-rgb),.4);animation:slowspin 10s linear infinite}
+@keyframes slowspin{to{transform:rotate(360deg)}}
+.punch-btn{width:132px;height:132px;border-radius:50%;border:none;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;transition:transform .15s;-webkit-user-select:none;user-select:none;position:relative;overflow:hidden}
+.punch-btn::after{content:'';position:absolute;inset:0;border-radius:50%;background:rgba(255,255,255,.08);opacity:0;transition:opacity .2s}
+.punch-btn:active{transform:scale(.92)}
+.punch-btn:active::after{opacity:1}
+.punch-btn.in{background:var(--acc);box-shadow:0 0 40px rgba(var(--acc-rgb),.35)}
+.punch-btn.out{background:var(--red);box-shadow:0 0 40px rgba(255,71,87,.3)}
+.punch-icon{width:30px;height:30px}
+.punch-lbl{font-size:11px;font-weight:800;letter-spacing:.1em;text-transform:uppercase}
+.punch-btn.in .punch-icon,.punch-btn.in .punch-lbl{color:var(--dark)}
+.punch-btn.out .punch-icon,.punch-btn.out .punch-lbl{color:#fff}
+.punch-hint{margin-top:10px;font-size:12px;color:var(--text3);font-weight:500}
+
+/* SESSIONS */
+.sec-hdr{display:flex;align-items:center;justify-content:space-between;padding:0 16px;margin-bottom:8px}
+.sec-ttl{font-size:11px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.1em}
+.sec-badge{font-size:11px;color:var(--acc);font-weight:700;background:rgba(var(--acc-rgb),.1);padding:2px 8px;border-radius:20px}
+.sess-item{margin:0 16px 8px;background:var(--card);border:1px solid var(--border);border-radius:var(--radius-xs);padding:11px 13px;display:flex;align-items:center;justify-content:space-between}
+.sess-left{display:flex;align-items:center;gap:9px}
+.sess-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.sess-dot.live{background:var(--acc);animation:dp 1.4s infinite}
+.sess-dot.done{background:var(--dark4)}
+.sess-n{font-size:10px;color:var(--text2);font-weight:600}
+.sess-t{font-size:13px;font-weight:600;color:var(--text)}
+.sess-dur{font-size:12px;font-weight:700;padding:3px 9px;border-radius:20px}
+.sess-dur.live{background:rgba(var(--acc-rgb),.1);color:var(--acc)}
+.sess-dur.done{background:var(--dark3);color:var(--text2)}
+.empty{padding:24px;text-align:center;color:var(--text3);font-size:13px}
+
+/* HISTORY */
+.page-hdr{background:var(--dark2);padding:18px 16px 14px;border-bottom:1px solid var(--border)}
+.page-ttl{font-size:20px;font-weight:800;letter-spacing:-.5px}
+.page-sub{font-size:13px;color:var(--text2);margin-top:2px}
+.hist-summary{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:12px 16px 4px}
+.hs-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius-xs);padding:10px;text-align:center}
+.hs-val{font-size:19px;font-weight:800}
+.hs-lbl{font-size:9px;color:var(--text2);font-weight:600;text-transform:uppercase;letter-spacing:.05em;margin-top:2px}
+.day-item{margin:8px 16px 0;border:1px solid var(--border);border-radius:var(--radius-xs);overflow:hidden;background:var(--card)}
+.day-top{display:flex;align-items:center;justify-content:space-between;padding:12px 13px;cursor:pointer}
+.day-top:active{background:var(--dark3)}
+.day-bar{width:4px;height:36px;border-radius:2px;flex-shrink:0;margin-right:10px}
+.day-inf-name{font-size:13px;font-weight:700}
+.day-inf-sub{font-size:11px;color:var(--text2);margin-top:1px}
+.day-right{text-align:right}
+.day-hrs{font-size:14px;font-weight:800}
+.day-badge{font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px;margin-top:3px;display:inline-block}
+.b-g{background:rgba(46,213,115,.1);color:#2ed573}
+.b-a{background:rgba(255,165,2,.1);color:#ffa502}
+.b-r{background:rgba(255,255,255,.05);color:var(--text3)}
+.b-t{background:rgba(var(--acc-rgb),.1);color:var(--acc)}
+.day-exp{display:none;border-top:1px solid var(--border);padding:9px 13px;background:var(--dark3)}
+.day-exp.show{display:block}
+.exp-row{display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px dashed var(--border)}
+.exp-row:last-child{border-bottom:none}
+.exp-lbl{font-size:12px;color:var(--text2)}
+.exp-val{font-size:12px;font-weight:600;color:var(--acc)}
+
+/* REPORTS */
+.rep-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:14px 16px}
+.rep-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius-xs);padding:14px;text-align:center}
+.rep-val{font-size:26px;font-weight:900;letter-spacing:-1px}
+.rep-lbl{font-size:10px;color:var(--text2);font-weight:600;text-transform:uppercase;letter-spacing:.05em;margin-top:3px}
+.bar-sec{margin:0 16px 12px}
+.bar-wrap{display:flex;align-items:flex-end;gap:5px;height:80px;margin-top:10px}
+.bar-col{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px}
+.bar-fill{width:100%;border-radius:3px 3px 0 0;min-height:2px;transition:height .6s cubic-bezier(.4,0,.2,1)}
+.bar-d{font-size:8px;color:var(--text3);font-weight:600}
+.bar-v{font-size:8px;font-weight:700}
+.att-section{margin:0 16px 12px;background:var(--card);border:1px solid var(--border);border-radius:var(--radius-xs);padding:14px}
+.att-inner{display:flex;align-items:center;justify-content:center;gap:20px;padding:6px 0}
+.att-legend{display:flex;flex-direction:column;gap:7px}
+.att-leg-row{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--text2)}
+.att-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.exp-csv-btn{margin:0 16px 10px;display:flex;align-items:center;justify-content:center;gap:8px;padding:13px;border:1px solid var(--border2);border-radius:var(--radius-xs);background:var(--card2);color:var(--text);font-size:14px;font-weight:700;cursor:pointer;width:calc(100% - 32px);font-family:'Inter',sans-serif}
+.exp-csv-btn:active{transform:scale(.98)}
+
+/* PROFILE */
+.prof-cover{height:140px;background:var(--dark2);border-bottom:1px solid var(--border);display:flex;flex-direction:column;align-items:center;justify-content:flex-end;padding-bottom:0;position:relative;flex-shrink:0}
+.prof-av-wrap{position:relative;margin-bottom:-44px}
+.prof-av{width:88px;height:88px;border-radius:50%;border:3px solid var(--acc);overflow:hidden;background:var(--dark3);display:flex;align-items:center;justify-content:center;font-size:28px;font-weight:900;color:var(--acc);cursor:pointer}
+.prof-av img{width:100%;height:100%;object-fit:cover}
+.prof-edit-btn{position:absolute;bottom:2px;right:2px;width:24px;height:24px;border-radius:50%;background:var(--acc);border:2px solid var(--dark);display:flex;align-items:center;justify-content:center;cursor:pointer}
+.prof-body{padding:52px 16px 0}
+.prof-name-row{text-align:center;margin-bottom:12px}
+.prof-big-name{font-size:21px;font-weight:800;letter-spacing:-.5px}
+.prof-phone{font-size:13px;color:var(--text2);margin-top:2px}
+.prof-email{font-size:12px;color:var(--acc);margin-top:1px}
+.prof-dept-chip{display:inline-block;margin-top:5px;font-size:11px;font-weight:700;padding:3px 12px;border-radius:20px;background:rgba(var(--acc-rgb),.1);color:var(--acc)}
+.fl{font-size:10px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.1em;margin:12px 0 5px}
+.fi{width:100%;padding:11px 13px;background:var(--dark3);border:1px solid var(--border2);border-radius:var(--radius-xs);font-size:14px;color:var(--text);font-family:'Inter',sans-serif}
+.fi:focus{outline:2px solid var(--acc);outline-offset:-1px;border-color:transparent}
+.fi[readonly]{opacity:.4;cursor:not-allowed}
+.save-btn{width:100%;padding:13px;border:none;border-radius:var(--radius-xs);background:var(--acc);color:var(--dark);font-size:15px;font-weight:800;cursor:pointer;margin-top:14px;font-family:'Inter',sans-serif}
+.save-btn:active{transform:scale(.98)}
+.logout-btn{width:100%;padding:12px;border:1px solid rgba(255,71,87,.25);border-radius:var(--radius-xs);background:rgba(255,71,87,.05);color:var(--red);font-size:14px;font-weight:700;cursor:pointer;margin-top:8px;font-family:'Inter',sans-serif}
+
+/* THEME GRID */
+.theme-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:6px}
+.th-sw{height:38px;border-radius:10px;cursor:pointer;border:3px solid transparent;transition:transform .15s,border-color .15s;display:flex;align-items:center;justify-content:center;font-size:14px;color:rgba(0,0,0,.7)}
+.th-sw:active{transform:scale(.9)}
+.th-sw.sel{border-color:#fff}
+.th-ck{display:none;font-weight:700}
+.th-sw.sel .th-ck{display:block}
+
+/* NOTIF ROWS */
+.n-row{display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--border)}
+.n-row:last-child{border-bottom:none}
+.n-lbl{font-size:14px;font-weight:600}
+.n-desc{font-size:11px;color:var(--text2);margin-top:2px}
+.tog{width:44px;height:24px;border-radius:12px;background:var(--dark4);position:relative;cursor:pointer;transition:background .25s;border:1px solid var(--border2);flex-shrink:0}
+.tog.on{background:var(--acc)}
+.tog::after{content:'';position:absolute;width:18px;height:18px;border-radius:50%;background:#fff;top:2px;left:2px;transition:transform .25s cubic-bezier(.4,0,.2,1)}
+.tog.on::after{transform:translateX(20px)}
+
+/* LOGIN */
+#login-screen{display:flex;flex-direction:column;align-items:center;justify-content:center;height:100vh;padding:32px 28px;background:var(--dark);position:relative;overflow:hidden}
+.l-orb1{position:absolute;width:320px;height:320px;border-radius:50%;background:radial-gradient(circle,rgba(var(--acc-rgb),.12),transparent 70%);top:-100px;right:-80px;pointer-events:none}
+.l-orb2{position:absolute;width:200px;height:200px;border-radius:50%;background:radial-gradient(circle,rgba(120,80,255,.08),transparent 70%);bottom:-60px;left:-60px;pointer-events:none}
+.l-icon{width:60px;height:60px;border-radius:18px;background:rgba(var(--acc-rgb),.1);border:1px solid rgba(var(--acc-rgb),.25);display:flex;align-items:center;justify-content:center;margin-bottom:14px}
+.l-brand{font-size:30px;font-weight:900;letter-spacing:-1.5px;margin-bottom:4px}
+.l-brand span{color:var(--acc)}
+.l-tag{font-size:14px;color:var(--text2);margin-bottom:32px;text-align:center;line-height:1.5}
+.l-card{background:var(--card);border:1px solid var(--border2);border-radius:var(--radius);padding:22px;width:100%;z-index:2}
+.l-lbl{font-size:10px;color:var(--text2);font-weight:700;text-transform:uppercase;letter-spacing:.1em;margin-bottom:5px}
+.l-inp{width:100%;padding:12px 13px;background:var(--dark3);border:1px solid var(--border2);border-radius:var(--radius-xs);color:var(--text);font-size:15px;font-family:'Inter',sans-serif;margin-bottom:10px}
+.l-inp::placeholder{color:var(--text3)}
+.l-inp:focus{outline:2px solid var(--acc);outline-offset:-1px;border-color:transparent}
+.l-btn{width:100%;padding:14px;border:none;border-radius:var(--radius-xs);background:var(--acc);color:var(--dark);font-size:15px;font-weight:800;cursor:pointer;font-family:'Inter',sans-serif;margin-top:4px;letter-spacing:.02em}
+.l-btn:active{transform:scale(.97)}
+.l-hint{font-size:11px;color:var(--text3);text-align:center;margin-top:20px;line-height:1.7;z-index:2}
+
+/* TOAST */
+.toast{position:absolute;bottom:84px;left:50%;transform:translateX(-50%) translateY(8px);background:var(--card2);color:var(--text);padding:10px 18px;border-radius:30px;font-size:13px;font-weight:500;white-space:nowrap;opacity:0;pointer-events:none;transition:all .3s;border:1px solid var(--border2);z-index:999}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+</style>
+</head>
+<body>
+<div id="root">
+
+<!-- LOGIN SCREEN -->
+<div id="login-screen">
+  <div class="l-orb1"></div><div class="l-orb2"></div>
+  <div class="l-icon">
+    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--acc)" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><polyline points="12,6 12,12 16,14"/></svg>
+  </div>
+  <div class="l-brand">Punch<span>Time</span> <span style="font-size:13px;font-weight:600;color:var(--text2);letter-spacing:0">Pro</span></div>
+  <div class="l-tag">Professional office attendance.<br>Your number is your identity.</div>
+  <div class="l-card">
+    <div class="l-lbl">Mobile number</div>
+    <input class="l-inp" id="l-phone" type="tel" inputmode="numeric" maxlength="15" placeholder="9876543210" autocomplete="tel">
+    <div class="l-lbl">Your name</div>
+    <input class="l-inp" id="l-name" type="text" placeholder="Full name (first time only)">
+    <div class="l-lbl">Email address <span style="color:var(--text3);font-size:9px;font-weight:500;text-transform:none">(optional)</span></div>
+    <input class="l-inp" id="l-email" type="email" placeholder="you@company.com" style="margin-bottom:0">
+    <button class="l-btn" onclick="doLogin()">Get Started →</button>
+  </div>
+  <div class="l-hint">No OTP &nbsp;·&nbsp; No password &nbsp;·&nbsp; No server<br>All data is saved only on this device</div>
+</div>
+
+<!-- MAIN APP -->
+<div id="app" style="display:none">
+  <div class="app-header">
+    <div class="hdr-logo">Punch<span>Time</span></div>
+    <div class="hdr-right">
+      <div style="text-align:right">
+        <div id="hdr-time" style="font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:600;color:var(--text)">--:--</div>
+        <div id="hdr-dept" style="font-size:10px;color:var(--text2)"></div>
+      </div>
+      <div class="hdr-avatar" id="hdr-av" onclick="showScreen('profile')"></div>
+    </div>
+  </div>
+
+  <!-- HOME -->
+  <div class="screen active" id="screen-home">
+    <div class="home-top">
+      <div class="greeting-row">
+        <div>
+          <div class="greeting-hi" id="greet-hi">Good morning</div>
+          <div class="greeting-name" id="greet-name">Employee</div>
+        </div>
+        <div class="status-badge" id="status-badge">Offline</div>
+      </div>
+      <!-- Clock card -->
+      <div class="clock-card">
+        <div class="clock-accent-line"></div>
+        <div class="clock-label-row">
+          <div class="live-dot" id="live-dot"></div>
+          <div class="clock-lbl-txt" id="clk-lbl">Total hours today</div>
+        </div>
+        <div class="big-clock" id="big-clock">0h 00m 00s</div>
+        <div class="clock-sub">
+          <span id="clk-date"></span>
+          <span id="sess-count-lbl">0 sessions</span>
+        </div>
+        <div class="progress-wrap">
+          <div class="progress-track"><div class="progress-fill" id="prog-fill" style="width:0"></div></div>
+          <div class="progress-labels">
+            <span id="prog-left">0h of 8h goal</span>
+            <span id="prog-pct">0%</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Quick stats -->
+    <div class="qs-grid">
+      <div class="qs-card"><div class="qs-val" id="qs-t">0h</div><div class="qs-lbl">Today</div></div>
+      <div class="qs-card"><div class="qs-val" id="qs-w">0h</div><div class="qs-lbl">Week</div></div>
+      <div class="qs-card"><div class="qs-val" id="qs-m">0h</div><div class="qs-lbl">Month</div></div>
+    </div>
+
+    <!-- Punch -->
+    <div class="punch-zone">
+      <div class="punch-outer" id="punch-outer">
+        <button class="punch-btn in" id="punch-btn" onclick="doPunch()">
+          <svg class="punch-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round">
+            <circle cx="12" cy="12" r="10"/><polyline points="12,6 12,12 16,14"/>
+          </svg>
+          <span class="punch-lbl" id="punch-lbl">Punch In</span>
+        </button>
+      </div>
+      <div class="punch-hint" id="punch-hint">Tap to start your shift</div>
+    </div>
+
+    <div class="sec-hdr">
+      <div class="sec-ttl">Today's sessions</div>
+      <div class="sec-badge" id="sess-badge">0</div>
+    </div>
+    <div id="sessions-list"></div>
+    <div style="height:8px"></div>
+  </div>
+
+  <!-- HISTORY -->
+  <div class="screen" id="screen-history">
+    <div class="page-hdr">
+      <div class="page-ttl">Attendance history</div>
+      <div class="page-sub" id="hist-sub">Last 30 days</div>
+    </div>
+    <div class="hist-summary">
+      <div class="hs-card"><div class="hs-val" id="hm-d" style="color:var(--acc)">0</div><div class="hs-lbl">Present</div></div>
+      <div class="hs-card"><div class="hs-val" id="hm-h" style="color:var(--green)">0h</div><div class="hs-lbl">Total hrs</div></div>
+      <div class="hs-card"><div class="hs-val" id="hm-a" style="color:var(--amber)">0%</div><div class="hs-lbl">Attendance</div></div>
+    </div>
+    <div id="hist-list" style="padding-bottom:8px"></div>
+  </div>
+
+  <!-- REPORTS -->
+  <div class="screen" id="screen-reports">
+    <div class="page-hdr">
+      <div class="page-ttl">Monthly report</div>
+      <div class="page-sub" id="rep-sub"></div>
+    </div>
+    <div class="rep-grid">
+      <div class="rep-card"><div class="rep-val" id="r-d" style="color:var(--acc)">0</div><div class="rep-lbl">Days present</div></div>
+      <div class="rep-card"><div class="rep-val" id="r-h" style="color:var(--green)">0h</div><div class="rep-lbl">Total hours</div></div>
+      <div class="rep-card"><div class="rep-val" id="r-a" style="color:var(--amber)">0h</div><div class="rep-lbl">Avg / day</div></div>
+      <div class="rep-card"><div class="rep-val" id="r-ot" style="color:var(--red)">0</div><div class="rep-lbl">Overtime</div></div>
+    </div>
+    <div class="bar-sec card">
+      <div class="card-title">Daily hours — last 7 days</div>
+      <div class="bar-wrap" id="bar-chart"></div>
+    </div>
+    <div class="att-section">
+      <div class="card-title">Attendance breakdown</div>
+      <div class="att-inner">
+        <svg width="90" height="90" viewBox="0 0 90 90">
+          <circle cx="45" cy="45" r="36" fill="none" stroke="var(--dark4)" stroke-width="9"/>
+          <circle cx="45" cy="45" r="36" fill="none" stroke="var(--acc)" stroke-width="9" stroke-linecap="round"
+            stroke-dasharray="226.2" id="att-arc" stroke-dashoffset="226.2" transform="rotate(-90 45 45)" style="transition:stroke-dashoffset .8s"/>
+          <text x="45" y="49" text-anchor="middle" font-size="15" font-weight="800" fill="var(--text)" font-family="Inter" id="att-pct">0%</text>
+        </svg>
+        <div class="att-legend">
+          <div class="att-leg-row"><div class="att-dot" style="background:var(--acc)"></div><span id="att-pr">0 present</span></div>
+          <div class="att-leg-row"><div class="att-dot" style="background:var(--amber)"></div><span id="att-hd">0 half day</span></div>
+          <div class="att-leg-row"><div class="att-dot" style="background:var(--dark4)"></div><span id="att-ab">0 absent</span></div>
+          <div class="att-leg-row"><div class="att-dot" style="background:var(--green)"></div><span id="att-ot">0 overtime</span></div>
+        </div>
+      </div>
+    </div>
+    <button class="exp-csv-btn" onclick="exportCSV()">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7,10 12,15 17,10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      Export as CSV
+    </button>
+    <div style="height:8px"></div>
+  </div>
+
+  <!-- PROFILE -->
+  <div class="screen" id="screen-profile">
+    <div class="prof-cover" id="prof-cover">
+      <div class="prof-av-wrap">
+        <div class="prof-av" id="prof-av" onclick="document.getElementById('photo-inp').click()"></div>
+        <div class="prof-edit-btn" onclick="document.getElementById('photo-inp').click()">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="var(--dark)" stroke-width="2.5" stroke-linecap="round"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+        </div>
+      </div>
+    </div>
+    <input type="file" id="photo-inp" accept="image/*" style="display:none" onchange="uploadPhoto(event)">
+    <div class="prof-body">
+      <div class="prof-name-row">
+        <div class="prof-big-name" id="p-name">Employee</div>
+        <div class="prof-phone" id="p-phone"></div>
+        <div class="prof-email" id="p-email-disp"></div>
+        <div class="prof-dept-chip" id="p-dept">—</div>
+      </div>
+
+      <div class="card" style="margin:12px 0 10px">
+        <div class="card-title">Edit profile</div>
+        <div class="fl">Full name</div>
+        <input class="fi" id="e-name" type="text" placeholder="Your full name">
+        <div class="fl">Department</div>
+        <input class="fi" id="e-dept" type="text" placeholder="e.g. HR, Sales, IT, Operations">
+        <div class="fl">Email address</div>
+        <input class="fi" id="e-email" type="email" placeholder="you@company.com">
+        <div class="fl">Mobile number</div>
+        <input class="fi" id="e-phone" readonly>
+        <button class="save-btn" onclick="saveProfile()">Save changes</button>
+      </div>
+
+      <div class="card" style="margin:0 0 10px">
+        <div class="card-title">App theme</div>
+        <div class="theme-grid" id="theme-grid"></div>
+      </div>
+
+      <div class="card" style="margin:0 0 10px">
+        <div class="card-title">Notifications</div>
+        <div class="n-row">
+          <div><div class="n-lbl">8-hour alert</div><div class="n-desc">When you complete 8 hrs today</div></div>
+          <button class="tog on" id="n-8hr" onclick="togNotif('n-8hr','n8hr')"></button>
+        </div>
+        <div class="n-row">
+          <div><div class="n-lbl">Punch-out reminder</div><div class="n-desc">At 6 PM if still punched in</div></div>
+          <button class="tog on" id="n-eve" onclick="togNotif('n-eve','neve')"></button>
+        </div>
+        <div class="n-row">
+          <div><div class="n-lbl">Morning reminder</div><div class="n-desc">Nudge to punch in at 9 AM</div></div>
+          <button class="tog" id="n-morn" onclick="togNotif('n-morn','nmorn')"></button>
+        </div>
+        <div class="n-row">
+          <div><div class="n-lbl">Hourly progress</div><div class="n-desc">While punched in, every hour</div></div>
+          <button class="tog" id="n-hrly" onclick="togNotif('n-hrly','nhrly')"></button>
+        </div>
+      </div>
+
+      <button class="logout-btn" onclick="doLogout()">Logout from this device</button>
+      <div style="height:16px"></div>
+    </div>
+  </div>
+
+  <!-- BOTTOM NAV -->
+  <div class="bottom-nav">
+    <div class="nav-bar" id="nav-bar"></div>
+    <button class="nav-btn active" id="nav-home" onclick="showScreen('home')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9,22 9,12 15,12 15,22"/></svg>
+      Home
+    </button>
+    <button class="nav-btn" id="nav-history" onclick="showScreen('history')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+      History
+    </button>
+    <button class="nav-btn" id="nav-reports" onclick="showScreen('reports')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+      Reports
+    </button>
+    <button class="nav-btn" id="nav-profile" onclick="showScreen('profile')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+      Profile
+    </button>
+  </div>
+  <div class="toast" id="toast"></div>
+</div>
+</div>
+
+<script>
+const LS={get:k=>{try{return JSON.parse(localStorage.getItem(k))}catch{return null}},set:(k,v)=>localStorage.setItem(k,JSON.stringify(v)),del:k=>localStorage.removeItem(k)};
+
+const THEMES={
+  teal:{a:'#00e5b4',a2:'#00b890',rgb:'0,229,180',d:'#0a0f1e',d2:'#111827',d3:'#1a2235',d4:'#232d42',c:'#161d2e',c2:'#1e2840'},
+  violet:{a:'#a78bfa',a2:'#7c3aed',rgb:'167,139,250',d:'#0d0a1e',d2:'#130e26',d3:'#1c1535',d4:'#261d42',c:'#160f30',c2:'#1e1840'},
+  coral:{a:'#ff6b6b',a2:'#ee5252',rgb:'255,107,107',d:'#180d0d',d2:'#1f1212',d3:'#2a1818',d4:'#352020',c:'#241313',c2:'#2c1616'},
+  sapphire:{a:'#60a5fa',a2:'#3b82f6',rgb:'96,165,250',d:'#090f1e',d2:'#0e1626',d3:'#162030',d4:'#1e2c40',c:'#111c30',c2:'#162238'},
+  amber:{a:'#fbbf24',a2:'#f59e0b',rgb:'251,191,36',d:'#130f00',d2:'#1c1500',d3:'#261f00',d4:'#322800',c:'#221900',c2:'#2c2000'},
+  rose:{a:'#fb7185',a2:'#f43f5e',rgb:'251,113,133',d:'#160a0e',d2:'#1e0e14',d3:'#28121c',d4:'#361824',c:'#240d18',c2:'#2e1020'},
+  lime:{a:'#a3e635',a2:'#84cc16',rgb:'163,230,53',d:'#0a120a',d2:'#0f1a0d',d3:'#152212',d4:'#1c2e18',c:'#111e0f',c2:'#162415'},
+  sky:{a:'#38bdf8',a2:'#0ea5e9',rgb:'56,189,248',d:'#090f1a',d2:'#0d1724',d3:'#13202e',d4:'#1a2c40',c:'#0f1c2c',c2:'#132235'},
+};
+
+let USER=null,TICK=null,CLK=null,NTIMERS=[],HR8=false,THEME='teal';
+
+(function(){
+  const s=LS.get('pt_sess');
+  if(s&&s.p){const u=(LS.get('pt_users')||{})[s.p];if(u){USER=s.p;showApp();return;}}
+  document.getElementById('login-screen').style.display='flex';
+})();
+
+function doLogin(){
+  const ph=document.getElementById('l-phone').value.trim().replace(/\D/g,'');
+  const nm=document.getElementById('l-name').value.trim();
+  const em=document.getElementById('l-email').value.trim();
+  if(!ph||ph.length<7){toast('Enter a valid mobile number');return;}
+  const us=LS.get('pt_users')||{};
+  if(!us[ph]){us[ph]={name:nm||'Employee',dept:'',email:em,phone:ph,photo:'',theme:'teal',created:Date.now()};LS.set('pt_users',us);toast('Welcome, '+(nm||'Employee')+'!');}
+  else{if(em&&!us[ph].email){us[ph].email=em;LS.set('pt_users',us);}toast('Welcome back, '+us[ph].name+'!');}
+  LS.set('pt_sess',{p:ph});USER=ph;showApp();
+}
+function doLogout(){
+  if(!confirm('Logout from this device?'))return;
+  LS.del('pt_sess');USER=null;
+  clearInterval(TICK);clearInterval(CLK);NTIMERS.forEach(clearTimeout);
+  document.getElementById('app').style.display='none';
+  document.getElementById('login-screen').style.display='flex';
+  ['l-phone','l-name','l-email'].forEach(id=>document.getElementById(id).value='');
+}
+function showApp(){
+  document.getElementById('login-screen').style.display='none';
+  document.getElementById('app').style.display='flex';
+  const u=getU();THEME=u.theme||'teal';applyTheme(THEME);
+  buildThemes();loadUI();refreshHome();startClocks();schedNotifs();showScreen('home');
+}
+
+// THEME
+function applyTheme(t){
+  const th=THEMES[t]||THEMES.teal,rs=document.documentElement.style;
+  rs.setProperty('--acc',th.a);rs.setProperty('--acc2',th.a2);rs.setProperty('--acc-rgb',th.rgb);
+  rs.setProperty('--dark',th.d);rs.setProperty('--dark2',th.d2);rs.setProperty('--dark3',th.d3);rs.setProperty('--dark4',th.d4);
+  rs.setProperty('--card',th.c);rs.setProperty('--card2',th.c2);
+  document.getElementById('meta-theme').content=th.d;
+}
+function buildThemes(){
+  const colors={teal:'#00e5b4',violet:'#a78bfa',coral:'#ff6b6b',sapphire:'#60a5fa',amber:'#fbbf24',rose:'#fb7185',lime:'#a3e635',sky:'#38bdf8'};
+  document.getElementById('theme-grid').innerHTML=Object.entries(colors).map(([k,c])=>
+    `<div class="th-sw ${THEME===k?'sel':''}" style="background:${c}" onclick="setTheme('${k}')"><span class="th-ck">✓</span></div>`).join('');
+}
+function setTheme(t){
+  THEME=t;applyTheme(t);buildThemes();
+  const us=LS.get('pt_users')||{};us[USER].theme=t;LS.set('pt_users',us);toast('Theme updated!');
+}
+
+// USER
+function getU(){return(LS.get('pt_users')||{})[USER]||{name:'Employee',dept:'',email:'',photo:''};}
+function initials(n){return n.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2)||'?';}
+function setAvEl(el,u,sz,fs){
+  el.style.width=sz;el.style.height=sz;el.style.fontSize=fs;
+  if(u.photo){el.innerHTML=`<img src="${u.photo}">`;}
+  else{el.innerHTML=initials(u.name);el.style.background='var(--acc)';el.style.color='var(--dark)';}
+}
+function loadUI(){
+  const u=getU();
+  setAvEl(document.getElementById('hdr-av'),u,'36px','13px');
+  setAvEl(document.getElementById('prof-av'),u,'88px','28px');
+  document.getElementById('hdr-dept').textContent=u.dept||'PunchTime Pro';
+  document.getElementById('p-name').textContent=u.name;
+  document.getElementById('p-phone').textContent=USER;
+  document.getElementById('p-email-disp').textContent=u.email||'No email set';
+  document.getElementById('p-email-disp').style.color=u.email?'var(--acc)':'var(--text3)';
+  document.getElementById('p-dept').textContent=u.dept||'No department';
+  document.getElementById('e-name').value=u.name;
+  document.getElementById('e-dept').value=u.dept||'';
+  document.getElementById('e-email').value=u.email||'';
+  document.getElementById('e-phone').value=USER;
+  loadNotifs();buildThemes();
+}
+function uploadPhoto(e){
+  const f=e.target.files[0];if(!f)return;
+  const r=new FileReader();
+  r.onload=ev=>{const us=LS.get('pt_users')||{};us[USER].photo=ev.target.result;LS.set('pt_users',us);loadUI();toast('Profile photo updated!');};
+  r.readAsDataURL(f);
+}
+function saveProfile(){
+  const n=document.getElementById('e-name').value.trim(),d=document.getElementById('e-dept').value.trim(),em=document.getElementById('e-email').value.trim();
+  if(!n){toast('Name cannot be empty');return;}
+  const us=LS.get('pt_users')||{};us[USER].name=n;us[USER].dept=d;us[USER].email=em;LS.set('pt_users',us);
+  loadUI();toast('Profile saved!');
+}
+
+// DATE/TIME
+function todayKey(){return new Date().toISOString().slice(0,10)}
+function pad(n){return String(n).padStart(2,'0')}
+function fmtT(ts){const d=new Date(ts);let h=d.getHours(),m=d.getMinutes(),s=d.getSeconds(),ap=h>=12?'PM':'AM';h=h%12||12;return`${h}:${pad(m)}:${pad(s)} ${ap}`}
+function mHMS(m){const h=Math.floor(m/60),mn=Math.floor(m%60),sc=Math.floor((m*60)%60);return`${h}h ${pad(mn)}m ${pad(sc)}s`}
+function mHM(m){const h=Math.floor(m/60),mn=Math.round(m%60);return h>0?`${h}h ${pad(mn)}m`:`${mn}m`}
+function mH1(m){return(m/60).toFixed(1)+'h'}
+function greeting(){const h=new Date().getHours();return h<12?'Good morning':h<17?'Good afternoon':'Good evening'}
+
+// PUNCH DATA
+function getPD(){return LS.get(`pt_p_${USER}`)||{}}
+function savePD(d){LS.set(`pt_p_${USER}`,d)}
+function getTodayS(){return getPD()[todayKey()]||[]}
+function saveTodayS(s){const d=getPD();d[todayKey()]=s;savePD(d)}
+function isIn(){const s=getTodayS();return s.length>0&&!s[s.length-1].out}
+function calcM(sessions){const n=Date.now();return sessions.reduce((a,s)=>a+((s.out||n)-s.in)/60000,0)}
+
+// PUNCH
+function doPunch(){
+  const s=getTodayS(),pIn=isIn(),now=Date.now();
+  if(!pIn){
+    s.push({in:now,out:null});toast('Punched in at '+fmtT(now));
+  } else {
+    const last=s[s.length-1];
+    if((now-last.in)<6000){toast('Too soon! Wait a moment.');return;}
+    last.out=now;toast('Punched out — '+mHM((now-last.in)/60000));
+  }
+  saveTodayS(s);HR8=false;refreshHome();schedNotifs();
+}
+
+// HOME
+function refreshHome(){
+  const s=getTodayS(),pIn=isIn(),m=calcM(s);
+  const btn=document.getElementById('punch-btn'),lbl=document.getElementById('punch-lbl');
+  const outer=document.getElementById('punch-outer'),dot=document.getElementById('live-dot');
+  if(pIn){btn.className='punch-btn out';lbl.textContent='Punch Out';outer.classList.add('spinning');dot.classList.add('pulsing');}
+  else{btn.className='punch-btn in';lbl.textContent='Punch In';outer.classList.remove('spinning');dot.classList.remove('pulsing');}
+  updateClock(m,pIn,s.length);renderSess(s);calcStats(m);
+  const u=getU();
+  document.getElementById('greet-name').textContent=u.name.split(' ')[0];
+  document.getElementById('greet-hi').textContent=greeting();
+  document.getElementById('punch-hint').textContent=pIn?'Tap to end your session':'Tap to start your shift';
+  const sb=document.getElementById('status-badge');
+  if(pIn){sb.textContent='Working';sb.style.background='rgba(var(--acc-rgb),.12)';sb.style.color='var(--acc)';}
+  else if(m>0){sb.textContent='Done today';sb.style.background='rgba(46,213,115,.1)';sb.style.color='var(--green)';}
+  else{sb.textContent='Not started';sb.style.background='rgba(255,255,255,.05)';sb.style.color='var(--text3)';}
+}
+function updateClock(m,pIn,cnt){
+  document.getElementById('big-clock').textContent=mHMS(m);
+  document.getElementById('big-clock').className='big-clock'+(pIn?' live':'');
+  const pct=Math.min(100,Math.round(m/480*100));
+  document.getElementById('prog-fill').style.width=pct+'%';
+  document.getElementById('prog-left').textContent=mHM(m)+' of 8h goal';
+  document.getElementById('prog-pct').textContent=pct+'%';
+  document.getElementById('clk-date').textContent=new Date().toLocaleDateString('en-IN',{weekday:'long',day:'numeric',month:'long'});
+  document.getElementById('sess-count-lbl').textContent=cnt+' session'+(cnt!==1?'s':'');
+  document.getElementById('sess-badge').textContent=cnt;
+  document.getElementById('clk-lbl').textContent=pIn?'Currently working':'Total hours today';
+}
+function calcStats(todayM){
+  const d=getPD(),now=new Date();let wM=0,mM=0;
+  Object.entries(d).forEach(([k,s])=>{const dt=new Date(k),m=calcM(s);if((now-dt)/86400000<=7)wM+=m;if(dt.getMonth()===now.getMonth()&&dt.getFullYear()===now.getFullYear())mM+=m;});
+  document.getElementById('qs-t').textContent=mH1(todayM);
+  document.getElementById('qs-w').textContent=mH1(wM);
+  document.getElementById('qs-m').textContent=mH1(mM);
+}
+function renderSess(sessions){
+  const el=document.getElementById('sessions-list'),now=Date.now();
+  if(!sessions.length){el.innerHTML='<div class="empty">No punches yet today</div>';return;}
+  el.innerHTML=sessions.map((s,i)=>{
+    const open=!s.out,dur=((s.out||now)-s.in)/60000;
+    return`<div class="sess-item"><div class="sess-left"><div class="sess-dot ${open?'live':'done'}"></div><div><div class="sess-n">Session ${i+1}</div><div class="sess-t">${fmtT(s.in)} → ${open?'<span style="color:var(--acc)">Now</span>':fmtT(s.out)}</div></div></div><div class="sess-dur ${open?'live':'done'}">${mHM(dur)}</div></div>`;
+  }).join('');
+}
+
+// CLOCKS
+function startClocks(){
+  clearInterval(CLK);
+  CLK=setInterval(()=>{
+    const n=new Date();let h=n.getHours(),m=n.getMinutes(),ap=h>=12?'PM':'AM';h=h%12||12;
+    document.getElementById('hdr-time').textContent=`${h}:${pad(m)} ${ap}`;
+    if(isIn()){const s=getTodayS(),mn=calcM(s);updateClock(mn,true,s.length);check8hr(mn);}
+  },1000);
+}
+function check8hr(m){if(HR8)return;if(m>=480){HR8=true;toast('8 hours complete! Great work today!');sendN('8 Hours Complete!','You completed 8 working hours. Well done!');}}
+
+// HISTORY
+function renderHistory(){
+  const d=getPD(),now=new Date(),days=[];
+  for(let i=0;i<30;i++){const dt=new Date();dt.setDate(dt.getDate()-i);days.push(dt.toISOString().slice(0,10));}
+  let totD=0,totM=0;const mon=now.getMonth(),yr=now.getFullYear();
+  const wkDays=days.filter(k=>{const dt=new Date(k);return dt.getMonth()===mon&&dt.getFullYear()===yr&&dt.getDay()!==0&&dt.getDay()!==6});
+  days.forEach(k=>{const dt=new Date(k),s=d[k]||[],m=calcM(s);if(dt.getMonth()===mon&&dt.getFullYear()===yr&&m>0){totD++;totM+=m;}});
+  document.getElementById('hm-d').textContent=totD;
+  document.getElementById('hm-h').textContent=mH1(totM);
+  document.getElementById('hm-a').textContent=wkDays.length?Math.round(totD/wkDays.length*100)+'%':'0%';
+  document.getElementById('hist-sub').textContent=now.toLocaleDateString('en-IN',{month:'long',year:'numeric'});
+  document.getElementById('hist-list').innerHTML=days.map(k=>{
+    const s=d[k]||[],m=calcM(s),h=Math.floor(m/60),mn=Math.floor(m%60),isToday=k===todayKey();
+    const dt=new Date(k);
+    let bc='var(--dark4)',bdg='b-r',btxt='Absent';
+    if(m>=480){bc='var(--acc)';bdg='b-t';btxt='Overtime';}
+    else if(m>=240){bc='var(--green)';bdg='b-g';btxt='Present';}
+    else if(m>0){bc='var(--amber)';bdg='b-a';btxt='Half day';}
+    const detail=s.length?s.map((ss,i)=>{const dur=((ss.out||Date.now())-ss.in)/60000;return`<div class="exp-row"><span class="exp-lbl">Session ${i+1}: ${fmtT(ss.in)} → ${ss.out?fmtT(ss.out):'Active'}</span><span class="exp-val">${mHM(dur)}</span></div>`;}).join(''):'<div style="font-size:12px;color:var(--text3);padding:4px 0">No record</div>';
+    return`<div class="day-item"><div class="day-top" onclick="document.getElementById('dx${k}').classList.toggle('show')">
+      <div style="display:flex;align-items:center;flex:1"><div class="day-bar" style="background:${bc}"></div>
+        <div><div class="day-inf-name">${isToday?'Today · ':''}<span style="font-weight:${isToday?800:600}">${dt.toLocaleDateString('en-IN',{weekday:'short',day:'numeric',month:'short'})}</span></div>
+        <div class="day-inf-sub">${s.length?s.length+' session'+(s.length>1?'s':''):'No record'}</div></div></div>
+      <div class="day-right">${m>0?`<div class="day-hrs" style="color:${bc}">${h}h ${pad(mn)}m</div>`:''}<div class="day-badge ${bdg}">${btxt}</div></div>
+    </div><div class="day-exp" id="dx${k}">${detail}</div></div>`;
+  }).join('');
+}
+
+// REPORTS
+function renderReports(){
+  const d=getPD(),now=new Date(),mon=now.getMonth(),yr=now.getFullYear();
+  let days=0,totM=0,otD=0,halfD=0,abD=0;
+  const wkDays=[];
+  for(let i=0;i<30;i++){const dt=new Date();dt.setDate(dt.getDate()-i);if(dt.getDay()!==0&&dt.getDay()!==6&&dt.getMonth()===mon)wkDays.push(dt.toISOString().slice(0,10));}
+  wkDays.forEach(k=>{const s=d[k]||[],m=calcM(s);if(m>=240){days++;totM+=m;if(m>=480)otD++;}else if(m>0){halfD++;totM+=m;}else abD++;});
+  const avg=days>0?totM/days:0,pct=wkDays.length?Math.round(days/wkDays.length*100):0;
+  document.getElementById('r-d').textContent=days;
+  document.getElementById('r-h').textContent=mH1(totM);
+  document.getElementById('r-a').textContent=mH1(avg);
+  document.getElementById('r-ot').textContent=otD;
+  document.getElementById('rep-sub').textContent=now.toLocaleDateString('en-IN',{month:'long',year:'numeric'});
+  const arc=226.2;
+  document.getElementById('att-arc').style.strokeDashoffset=arc*(1-pct/100);
+  document.getElementById('att-pct').textContent=pct+'%';
+  document.getElementById('att-pr').textContent=days+' present';
+  document.getElementById('att-hd').textContent=halfD+' half day';
+  document.getElementById('att-ab').textContent=abD+' absent';
+  document.getElementById('att-ot').textContent=otD+' overtime';
+  buildBars(d);
+}
+function buildBars(d){
+  const bars=[];let maxM=1;
+  for(let i=6;i>=0;i--){const dt=new Date();dt.setDate(dt.getDate()-i);const k=dt.toISOString().slice(0,10),m=calcM(d[k]||[]);if(m>maxM)maxM=m;bars.push({day:dt.toLocaleDateString('en-IN',{weekday:'short'}),m});}
+  document.getElementById('bar-chart').innerHTML=bars.map(b=>{
+    const pct=Math.max(2,Math.round(b.m/maxM*72)),col=b.m>=480?'var(--acc)':b.m>=240?'var(--green)':b.m>0?'var(--amber)':'var(--dark4)';
+    return`<div class="bar-col"><div class="bar-v" style="color:${col}">${b.m>0?(b.m/60).toFixed(1):''}</div><div class="bar-fill" style="height:${pct}px;background:${col}"></div><div class="bar-d">${b.day}</div></div>`;
+  }).join('');
+}
+
+// CSV EXPORT
+function exportCSV(){
+  const d=getPD();let csv='Date,Day,Session,Punch In,Punch Out,Duration,Daily Total\n';
+  const days=[];for(let i=29;i>=0;i--){const dt=new Date();dt.setDate(dt.getDate()-i);days.push(dt.toISOString().slice(0,10));}
+  days.forEach(k=>{
+    const s=d[k]||[],tot=calcM(s),dt=new Date(k),dn=dt.toLocaleDateString('en-IN',{weekday:'long'});
+    if(!s.length){csv+=`${k},${dn},,,,Absent,\n`;}
+    else s.forEach((ss,i)=>{const dur=((ss.out||Date.now())-ss.in)/60000;csv+=`${k},${dn},${i+1},${fmtT(ss.in)},${ss.out?fmtT(ss.out):'Active'},${mHM(dur)},${mHM(tot)}\n`;});
+  });
+  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));
+  a.download=`punchtime_${USER}_${todayKey()}.csv`;a.click();toast('CSV exported!');
+}
+
+// NOTIFICATIONS
+function loadNotifs(){
+  const p=LS.get(`pt_n_${USER}`)||{n8hr:true,neve:true,nmorn:false,nhrly:false};
+  [{id:'n-8hr',k:'n8hr'},{id:'n-eve',k:'neve'},{id:'n-morn',k:'nmorn'},{id:'n-hrly',k:'nhrly'}].forEach(({id,k})=>{
+    const el=document.getElementById(id);
+    (p[k]!==false&&(p[k]||k==='n8hr'||k==='neve'))?el.classList.add('on'):el.classList.remove('on');
+  });
+}
+function togNotif(id,key){
+  const el=document.getElementById(id);el.classList.toggle('on');
+  const p=LS.get(`pt_n_${USER}`)||{};p[key]=el.classList.contains('on');LS.set(`pt_n_${USER}`,p);schedNotifs();
+}
+function getNP(){return LS.get(`pt_n_${USER}`)||{n8hr:true,neve:true,nmorn:false,nhrly:false};}
+async function reqPerm(){if('Notification'in window&&Notification.permission==='default')await Notification.requestPermission();}
+function sendN(t,b){reqPerm();if('Notification'in window&&Notification.permission==='granted')new Notification(t,{body:b});}
+function schedNotifs(){
+  NTIMERS.forEach(clearTimeout);NTIMERS=[];
+  const p=getNP(),now=new Date();
+  if(p.neve&&isIn()){const t=new Date();t.setHours(18,0,0,0);const diff=t-now;if(diff>0)NTIMERS.push(setTimeout(()=>{if(isIn()){sendN('Punch Out Reminder',"It's 6 PM — don't forget to punch out!");toast('Reminder: still punched in!');}},diff));}
+  if(p.nmorn){const t=new Date();t.setHours(9,0,0,0);const diff=t-now;if(diff>0&&!isIn())NTIMERS.push(setTimeout(()=>{if(!isIn())sendN('Good Morning!','Time to punch in and start your day.');},diff));}
+  if(p.nhrly&&isIn()){const s=getTodayS(),mn=calcM(s),next=(Math.floor(mn/60)+1)*60,diff=(next-mn)*60000;NTIMERS.push(setTimeout(()=>{if(isIn()){const mn2=calcM(getTodayS());sendN(`${Math.floor(mn2/60)}h Done!`,`You've worked ${mHM(mn2)} today.`);schedNotifs();}},diff));}
+}
+
+// SCREENS
+const NAV_IDX={home:0,history:1,reports:2,profile:3};
+function showScreen(n){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('screen-'+n).classList.add('active');
+  document.getElementById('nav-'+n).classList.add('active');
+  document.getElementById('nav-bar').style.left=(NAV_IDX[n]*25)+'%';
+  if(n==='home')refreshHome();
+  if(n==='history')renderHistory();
+  if(n==='reports')renderReports();
+  if(n==='profile')loadUI();
+}
+
+// TOAST
+function toast(msg){
+  const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2800);
+}
+
+reqPerm();startClocks();
+document.getElementById('l-phone').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin();});
+document.getElementById('l-email').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin();});
+</script>
+<script>
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', async () => {
+      try {
+        await navigator.serviceWorker.register('./sw.js');
+        console.log('Service Worker Registered');
+      } catch (err) {
+        console.log('SW registration failed:', err);
+      }
+    });
+  }
+  </script>
+</body>
+</html>
